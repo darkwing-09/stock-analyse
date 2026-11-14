@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import asdict, dataclass, field
-from datetime import date
 from typing import Callable, Dict, List, Optional
 
 import numpy as np
@@ -59,6 +58,7 @@ class PendingEntry:
     sector: str
     signal_date: pd.Timestamp
     score: float = 0.0
+    ref_price: float = 0.0     # signal-day close, used for live limit prices
 
 
 @dataclass
@@ -251,7 +251,7 @@ class Backtester:
                 continue
             free_cash -= qty * cand.entry * (1 + slip)
             st.pending_entries.append(
-                PendingEntry(cand.symbol, qty, cand.stop, cand.target, cand.sector, day, cand.score)
+                PendingEntry(cand.symbol, qty, cand.stop, cand.target, cand.sector, day, cand.score, cand.entry)
             )
 
         # 4. mark to market

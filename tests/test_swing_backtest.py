@@ -2,7 +2,6 @@
 """Backtester trade mechanics on hand-built bars (seam: Backtester.run)."""
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from src.swing.backtest import Backtester

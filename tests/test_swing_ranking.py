@@ -2,7 +2,6 @@
 """Ranking engine + risk rules (seam: rank_universe / select_portfolio / position_size)."""
 
 import numpy as np
-import pandas as pd
 
 from src.swing.config import SwingConfig
 from src.swing.ranking import SignalEngine
