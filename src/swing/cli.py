@@ -314,6 +314,18 @@ def cmd_live(args) -> int:
     return 1
 
 
+def cmd_serve(args) -> int:
+    import uvicorn
+
+    from src.swing.server import DIST_DIR, create_app
+
+    if not DIST_DIR.exists():
+        print("Dashboard not built yet: cd apps/swing-dashboard && npm install && npm run build")
+    print(f"Dashboard: http://{args.host}:{args.port}  (read-only; Ctrl+C to stop)")
+    uvicorn.run(create_app(), host=args.host, port=args.port, log_level="warning")
+    return 0
+
+
 def cmd_universe(args) -> int:
     from src.swing.data import load_universe, refresh_universe
 
@@ -358,6 +370,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("live", help="live orders via Fyers (OFF unless LIVE_TRADING_ENABLED=true)")
     p.add_argument("action", choices=["plan", "approve", "submit", "reconcile"])
     p.set_defaults(func=cmd_live)
+
+    p = sub.add_parser("serve", help="open the dashboard (read-only)")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8600)
+    p.set_defaults(func=cmd_serve)
 
     p = sub.add_parser("universe", help="list (or --refresh from NSE) the stock universe")
     p.add_argument("--universe", default="nifty100", choices=["nifty100"])

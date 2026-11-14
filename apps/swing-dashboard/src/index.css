@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: dark; }
+  html { background: #0b0f1a; }
+  body {
+    @apply bg-ink-950 text-fg font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+    caret-color: #f2b23e;
+  }
+  ::selection { background: rgba(242, 178, 62, 0.32); color: #fff7e6; }
+  :focus-visible { outline: 2px solid #f2b23e; outline-offset: 2px; border-radius: 6px; }
+  * { scrollbar-width: thin; scrollbar-color: #323d57 transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb { background: #323d57; border-radius: 99px; border: 3px solid #0b0f1a; }
+  a { text-underline-offset: 3px; }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.02em; }
+}
+
+@layer components {
+  .num { @apply font-mono tabular-nums; font-feature-settings: "tnum", "zero"; }
+  .panel { @apply rounded-2xl bg-ink-850 ring-1 ring-ink-700/80 shadow-lift; }
+  .label { @apply text-[12px] font-medium text-fg-3; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ring-1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
