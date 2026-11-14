@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- [新功能] 印度大盘复盘：`MARKET_REVIEW_REGION=in` 输出 Nifty 50 / Sensex / Nifty Bank / India VIX 指数与 Nifty 板块指数涨跌排行，使用印度市场策略框架（指数结构、VIX 波动、板块轮动），按 Asia/Kolkata 日期与 XBOM 交易日历运行。
+- [新功能] 新增 Fyers API v3 印度数据源 `FyersFetcher`（NSE 日线、实时行情、指数），配置后优先于 YFinance 并自动回退；新增 `scripts/fyers_login.py` 每日登录换取访问令牌。
+
 - [新功能] 新增印度个股 suffix-only 支持：NSE `.NS`（如 `RELIANCE.NS`、`M&M.NS`、`BAJAJ-AUTO.NS`）与 BSE `.BO` 代码识别为 `in` 市场，日线/实时行情仅走 YFinance，交易日历注册 `XBOM / Asia/Kolkata`，LLM Prompt 使用印度市场语境（INR、RBI、SEBI、FII/DII、circuit、T+1），DecisionSignal / Portfolio / Intelligence / API 市场枚举放行 `in`，新增 Nifty 50 / Sensex / Nifty Bank 指数行情；印度股不再因 A 股资金流结构性缺失而一律将买入降级为观察（仍保留价格结构护栏），也不再向 A 股数据源请求筹码分布。
 
 - [修复] Docker 构建与启动入口在 ARM64 架构下默认设置 `OPENBLAS_CORETYPE=ARMV8`（保留用户显式覆盖且不影响 x86_64），修复 Apple Silicon Linux 虚拟机因 OpenBLAS SME 指令分发导致 `Illegal instruction (exit code 132)` 崩溃的问题，并补充部署排障说明。

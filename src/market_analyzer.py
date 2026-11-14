@@ -145,14 +145,14 @@ class MarketAnalyzer:
         Args:
             search_service: 搜索服务实例
             analyzer: AI分析器实例（用于调用LLM）
-            region: 市场区域 cn=A股 hk=港股 us=美股 jp=日本 kr=韩国 tw=台股
+            region: 市场区域 cn=A股 hk=港股 us=美股 jp=日本 kr=韩国 tw=台股 in=印度
             config: 本次复盘使用的配置；未传时读取全局配置
         """
         self.config = config or get_config()
         self.search_service = search_service
         self.analyzer = analyzer
         self.data_manager = DataFetcherManager()
-        self.region = region if region in ("cn", "us", "hk", "jp", "kr", "tw") else "cn"
+        self.region = region if region in ("cn", "us", "hk", "jp", "kr", "tw", "in") else "cn"
         self.profile: MarketProfile = get_profile(self.region)
         self.strategy = get_market_strategy_blueprint(self.region)
 
@@ -310,6 +310,8 @@ class MarketAnalyzer:
             return "Korea market" if review_language == "en" else "韩国市场"
         if self.region == "tw":
             return "Taiwan market" if review_language == "en" else "台股市场"
+        if self.region == "in":
+            return "India market" if review_language == "en" else "印度股市"
         if review_language == "en":
             return "A-share market"
         return "A股市场"
@@ -326,13 +328,15 @@ class MarketAnalyzer:
             return "KRW bn" if self._get_review_language() == "en" else "十亿韩元"
         if self.region == "tw":
             return "TWD bn" if self._get_review_language() == "en" else "十亿新台币"
+        if self.region == "in":
+            return "INR bn" if self._get_review_language() == "en" else "十亿卢比"
         return "CNY 100m" if self._get_review_language() == "en" else "亿"
 
     def _format_turnover_value(self, amount_raw: float) -> str:
         """Format raw turnover according to market-specific units."""
         if amount_raw == 0.0:
             return "N/A"
-        if self.region in ("us", "hk", "jp", "kr", "tw"):
+        if self.region in ("us", "hk", "jp", "kr", "tw", "in"):
             return f"{amount_raw / 1e9:.2f}"
         if amount_raw > 1e6:
             return f"{amount_raw / 1e8:.0f}"
@@ -354,11 +358,14 @@ class MarketAnalyzer:
                 "jp": "Japan Market Recap",
                 "kr": "Korea Market Recap",
                 "tw": "Taiwan Market Recap",
+                "in": "India Market Recap",
             }
             market_name = market_names.get(self.region, "A-share Market Recap")
             return f"## {date} {market_name}"
         if self.region == "tw":
             return f"## {date} 台股大盘复盘"
+        if self.region == "in":
+            return f"## {date} 印度股大盘复盘"
         return f"## {date} 大盘复盘"
 
     def _get_index_hint(self) -> str:
@@ -373,10 +380,34 @@ class MarketAnalyzer:
                 return "Analyze the key moves in the KOSPI, KOSDAQ, and other major Korean indices."
             if self.region == "tw":
                 return "Analyze TAIEX and the TPEx index; disclose missing indices without inferring their moves."
+            if self.region == "in":
+                return (
+                    "Analyze the Nifty 50, Sensex and Nifty Bank moves, read India VIX as the risk gauge, "
+                    "and use the sector indices to identify rotation."
+                )
             return "Analyze the price action in the SSE, SZSE, ChiNext, and other major indices."
         return self.profile.prompt_index_hint
 
     def _get_strategy_prompt_block(self) -> str:
+        if self.region == "in" and self._get_review_language() == "en":
+            return """## Strategy Blueprint: India Index, Sector and Volatility Recap
+Assess next-session risk from Nifty 50 / Sensex / Nifty Bank, India VIX and Nifty sector-index rotation.
+
+### Strategy Principles
+- Read Nifty 50 and Sensex direction first, then check whether Nifty Bank confirms (financials dominate the index).
+- Use India VIX as the risk gauge: a rising VIX argues for smaller size and less chasing.
+- Use sector-index strength to identify rotation; map every conclusion to sizing, pace and risk control.
+- Do not invent FII/DII amounts, breadth or aggregate turnover; cite flows only when a news source reports them.
+
+### Analysis Dimensions
+- Index Structure: is the market trending up, ranging or defensive; do Nifty and Sensex agree; does Bank Nifty confirm.
+- Volatility & Sentiment: India VIX level and change; FII/DII direction from sourced news; INR, crude oil and US yields.
+- Sector Rotation: are leading sectors backed by catalysts; IT / banks / autos / pharma divergence; is weakness broadening.
+
+### Action Framework
+- Risk-on: Nifty and Bank Nifty rise together, VIX eases, and leading sectors have catalysts.
+- Neutral: indices diverge or VIX rises; keep size controlled and wait for confirmation.
+- Risk-off: indices weaken, VIX spikes or weakness broadens; prioritize drawdown control."""
         if self.region == "tw" and self._get_review_language() == "en":
             return """## Strategy Blueprint: Taiwan Index and News Recap
 Assess Taiwan market risk from available TAIEX/TPEx index data and verified news.
@@ -524,6 +555,12 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 
     def _get_strategy_markdown_block(self, review_language: str | None = None) -> str:
         review_language = review_language or self._get_review_language()
+        if self.region == "in" and review_language == "en":
+            return """### 6. Strategy Framework
+- **Index Structure**: Classify the market as advancing, range-bound or defensive from Nifty 50 / Sensex / Nifty Bank alignment.
+- **Volatility & Flows**: Track India VIX, INR, crude oil and sourced FII/DII flow news for risk appetite.
+- **Sector Rotation**: Follow Nifty sector-index leaders and laggards and whether weakness is broadening.
+"""
         if self.region == "tw" and review_language == "en":
             return """### 6. Strategy Framework
 - **Index Structure**: Assess TAIEX/TPEx direction using available data; disclose missing coverage.
@@ -589,7 +626,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         Returns:
             MarketOverview: 市场概览数据对象
         """
-        now = get_market_now("tw") if self.region == "tw" else datetime.now()
+        now = get_market_now(self.region) if self.region in ("tw", "in") else datetime.now()
         today = now.strftime('%Y-%m-%d')
         overview = MarketOverview(date=today)
         
@@ -602,8 +639,11 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 
         # 3. 获取板块涨跌榜（A 股有，美股暂无）
         if self.profile.has_sector_rankings:
-            self._get_sector_rankings(overview)
-            self._get_concept_rankings(overview)
+            if self.region == "in":
+                self._get_in_sector_rankings(overview)
+            else:
+                self._get_sector_rankings(overview)
+                self._get_concept_rankings(overview)
         
         # 4. 获取北向资金（可选）
         # self._get_north_flow(overview)
@@ -684,6 +724,15 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 
         except Exception as e:
             logger.error("[大盘] %s action=get_market_stats status=failed error=%s", self._log_context(), e)
+
+    def _get_in_sector_rankings(self, overview: MarketOverview):
+        """India sector rotation from Nifty sector indices (fail-open)."""
+        try:
+            top_sectors, bottom_sectors = self.data_manager.get_in_sector_rankings(5)
+            overview.top_sectors = list(top_sectors or [])
+            overview.bottom_sectors = list(bottom_sectors or [])
+        except Exception as e:
+            logger.warning("[大盘] %s action=get_in_sector_rankings status=failed error=%s", self._log_context(), e)
 
     def _get_sector_rankings(self, overview: MarketOverview):
         """获取板块涨跌榜"""
@@ -778,6 +827,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             "jp": "日本股市" if review_language == "zh" else "Japan stock market",
             "kr": "韩国股市" if review_language == "zh" else "Korea stock market",
             "tw": "台股市场" if review_language == "zh" else "Taiwan stock market",
+            "in": "印度股市" if review_language == "zh" else "Indian stock market",
         }
         
         try:
@@ -1832,7 +1882,7 @@ Concept lagging: {bottom_concepts_text if bottom_concepts_text else "N/A"}"""
         output_template_sections = self._build_output_template_sections(review_language)
         zh_market_scope_name = self._get_market_scope_name("zh")
         zh_report_title = f"{overview.date} 大盘复盘"
-        if self.region in ("jp", "kr", "tw"):
+        if self.region in ("jp", "kr", "tw", "in"):
             zh_report_title = f"{overview.date} {zh_market_scope_name}大盘复盘"
         workflow_hint = (
             "报告要像交易员盘后工作台：先给结论，再按数据表、主线、催化、计划展开"
@@ -2016,6 +2066,7 @@ Output the report content directly, no extra commentary.
                 "jp": "Japan Market Recap",
                 "kr": "Korea Market Recap",
                 "tw": "Taiwan Market Recap",
+                "in": "India Market Recap",
             }
             market_name = market_names.get(self.region, "A-share Market Recap")
             report = f"""## {overview.date} {market_name}
@@ -2037,7 +2088,7 @@ Market conditions can change quickly. The data above is for reference only and d
 """
             return report
 
-        market_labels = {"cn": "A股", "us": "美股", "hk": "港股", "jp": "日股", "kr": "韩股", "tw": "台股"}
+        market_labels = {"cn": "A股", "us": "美股", "hk": "港股", "jp": "日股", "kr": "韩股", "tw": "台股", "in": "印度股"}
         market_label = market_labels.get(self.region, "A股")
         dashboard_block = (
             self._build_stats_block(overview)

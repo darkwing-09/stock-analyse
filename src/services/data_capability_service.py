@@ -80,7 +80,7 @@ _PROVIDER_DEFINITIONS: Sequence[_ProviderDefinition] = (
             "quote.realtime": ("hk", "us", "jp", "kr", "tw", "in"),
             "kline.daily": ("cn", "hk", "us", "jp", "kr", "tw", "in"),
             "index.daily": ("cn", "us"),
-            "market.overview": ("cn", "hk", "us", "jp", "kr", "tw"),
+            "market.overview": ("cn", "hk", "us", "jp", "kr", "tw", "in"),
             "financial.snapshot": ("hk", "us", "jp", "kr", "tw", "in"),
         },
         builtin=True,
@@ -658,7 +658,7 @@ class DataCapabilityService:
                 market=market,
                 warnings=warnings,
             )
-            for market in ("cn", "hk", "us", "jp", "kr", "tw")
+            for market in ("cn", "hk", "us", "jp", "kr", "tw", "in")
         }
 
     def _daily_status_resolvers(

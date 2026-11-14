@@ -258,6 +258,41 @@ TW_BLUEPRINT = MarketStrategyBlueprint(
 )
 
 
+IN_BLUEPRINT = MarketStrategyBlueprint(
+    region="in",
+    title="印度市场指数、板块与资金复盘策略",
+    positioning="根据 Nifty 50 / Sensex / Nifty Bank、India VIX 与板块指数强弱，判断次日风险状态与轮动方向。",
+    principles=[
+        "先看 Nifty 50 与 Sensex 方向，再看 Nifty Bank 是否确认（金融权重占比高）。",
+        "用 India VIX 判断风险偏好：VIX 上行时降低仓位与追涨意愿。",
+        "用板块指数强弱识别轮动，结论必须映射到仓位、节奏与风控。",
+        "不臆造 FII/DII 具体金额、市场宽度或成交额汇总；新闻中有来源时才引用。",
+    ],
+    dimensions=[
+        StrategyDimension(
+            name="指数结构",
+            objective="判断大盘处于上升、震荡还是防守阶段。",
+            checkpoints=["Nifty 50 与 Sensex 是否同向", "Nifty Bank 是否确认", "关键支撑阻力是否守住"],
+        ),
+        StrategyDimension(
+            name="波动与情绪",
+            objective="通过 India VIX 与新闻评估风险偏好。",
+            checkpoints=["India VIX 水平与变化", "FII/DII 资金方向（仅引用新闻来源）", "卢比、原油与美债收益率"],
+        ),
+        StrategyDimension(
+            name="板块轮动",
+            objective="识别领涨与领跌板块的持续性。",
+            checkpoints=["领涨板块是否有催化", "IT/银行/汽车/医药等权重板块分化", "弱势板块是否扩散"],
+        ),
+    ],
+    action_framework=[
+        "进攻：Nifty 与 Bank Nifty 共振上行、VIX 回落、领涨板块有催化。",
+        "均衡：指数分化或 VIX 抬升，控制仓位等待确认。",
+        "防守：指数转弱、VIX 上冲或弱势板块扩散，优先控制回撤。",
+    ],
+)
+
+
 def get_market_strategy_blueprint(region: str) -> MarketStrategyBlueprint:
     """Return strategy blueprint by market region."""
     if region == "us":
@@ -270,4 +305,6 @@ def get_market_strategy_blueprint(region: str) -> MarketStrategyBlueprint:
         return KR_BLUEPRINT
     if region == "tw":
         return TW_BLUEPRINT
+    if region == "in":
+        return IN_BLUEPRINT
     return CN_BLUEPRINT

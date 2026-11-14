@@ -27,7 +27,7 @@ Already set for you:
 - `STOCK_LIST`: 10 Nifty stocks across sectors.
 - `REPORT_LANGUAGE=en`: reports in English.
 - `SCHEDULE_TIME=16:30` IST: after the 15:30 market close.
-- `MARKET_REVIEW_ENABLED=false`: the built-in market review only covers China/HK/US/Asia markets, so it's off until an India review is added.
+- `MARKET_REVIEW_ENABLED=true` and `MARKET_REVIEW_REGION=in`: a daily India market review covering Nifty 50, Sensex, Nifty Bank, India VIX and sector-index rotation (`python main.py --market-review`).
 
 ## 2. Ticker format
 
@@ -50,8 +50,16 @@ python main.py --webui                   # web dashboard at http://127.0.0.1:800
 
 On NSE holidays and weekends the run is skipped automatically (exchange calendar `XBOM`). Add `--force-run` to run anyway.
 
-## 4. Known limits
+## 4. Fyers data (optional, recommended)
 
-- Prices come from Yahoo Finance: free, but about 15 minutes delayed and sometimes patchy. A Fyers data source is the planned upgrade.
+Fyers gives more reliable NSE prices than Yahoo. With it configured, India data comes from Fyers first and falls back to Yahoo automatically.
+
+1. Open a Fyers account, then create an API app at https://myapi.fyers.in/dashboard. Set the redirect URL to `https://127.0.0.1/fyers/callback`.
+2. In `.env`, set `FYERS_CLIENT_ID` (the App ID, e.g. `ABCD1234-100`), `FYERS_SECRET_KEY` and `FYERS_REDIRECT_URI`.
+3. **Every trading morning**, run `python scripts/fyers_login.py`. Open the link, log in, and paste back the URL you're redirected to. The browser will show an error page at the 127.0.0.1 address; that's expected, just copy the URL. The token is saved to `data/fyers_token.json` (gitignored) and expires at the end of the day.
+
+## 5. Known limits
+
+- Without Fyers, prices come from Yahoo Finance: free, but about 15 minutes delayed and sometimes patchy.
 - The NSE holiday calendar in `exchange-calendars` 4.13 ends on 2026-12-31. Upgrade the package in January, or holidays will be treated as trading days.
-- Not yet available for India: market review, FII/DII daily flows, stock-name autocomplete in the web UI, INR portfolio valuation.
+- Not yet available for India: FII/DII daily flows, stock-name autocomplete in the web UI, INR portfolio valuation.

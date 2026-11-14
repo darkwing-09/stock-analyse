@@ -102,7 +102,7 @@ def test_yfinance_keeps_in_suffix_codes_and_indices() -> None:
     fetcher._fetch_yf_ticker_data = fake_fetch  # type: ignore[method-assign]
     in_indices = fetcher.get_main_indices("in") or []
 
-    assert {item["code"] for item in in_indices} == {"NIFTY50", "SENSEX", "BANKNIFTY"}
+    assert {item["code"] for item in in_indices} == {"NIFTY50", "SENSEX", "BANKNIFTY", "INDIAVIX"}
     assert ("^NSEI", "NIFTY50") in captured
     assert ("^BSESN", "SENSEX") in captured
     assert ("^NSEBANK", "BANKNIFTY") in captured

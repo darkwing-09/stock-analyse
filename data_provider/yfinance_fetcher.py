@@ -18,7 +18,7 @@ import csv
 import logging
 from datetime import datetime
 from io import StringIO
-from typing import Optional, List, Dict, Any
+from typing import Tuple, Optional, List, Dict, Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -538,14 +538,11 @@ class YfinanceFetcher(BaseFetcher):
         return None
 
     def _get_in_main_indices(self, yf) -> Optional[List[Dict[str, Any]]]:
-        """获取印度主要指数行情（Nifty 50 ^NSEI、Sensex ^BSESN、Bank Nifty ^NSEBANK）。"""
-        in_indices = {
-            'NIFTY50': ('^NSEI', 'Nifty 50'),
-            'SENSEX': ('^BSESN', 'BSE Sensex'),
-            'BANKNIFTY': ('^NSEBANK', 'Nifty Bank'),
-        }
+        """获取印度主要指数行情（Nifty 50、Sensex、Nifty Bank、India VIX）。"""
+        from data_provider.india_indices import IN_MAIN_INDICES
+
         results = []
-        for code, (yf_symbol, name) in in_indices.items():
+        for code, (yf_symbol, name) in IN_MAIN_INDICES.items():
             try:
                 item = self._fetch_yf_ticker_data(yf, yf_symbol, name, code)
                 if item:
@@ -556,6 +553,28 @@ class YfinanceFetcher(BaseFetcher):
             logger.info(f"[Yfinance] 成功获取 {len(results)} 个印度指数行情")
             return results
         return None
+
+    def get_in_sector_rankings(self, n: int = 5) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """Rank India sector indices (Nifty IT, Bank, Auto, ...) by daily change.
+
+        Returns ``(top, bottom)`` lists of ``{"name", "change_pct", "code"}``,
+        best first / worst first. Fail-open: unavailable sectors are skipped.
+        """
+        import yfinance as yf
+        from data_provider.india_indices import IN_SECTOR_INDICES
+
+        rows: List[Dict[str, Any]] = []
+        for code, (yf_symbol, name) in IN_SECTOR_INDICES.items():
+            try:
+                item = self._fetch_yf_ticker_data(yf, yf_symbol, name, code)
+            except Exception as e:
+                logger.warning(f"[Yfinance] 获取印度板块指数 {name} 失败: {e}")
+                continue
+            if not item or item.get("change_pct") is None:
+                continue
+            rows.append({"name": name, "change_pct": float(item["change_pct"]), "code": code})
+        ordered = sorted(rows, key=lambda row: row["change_pct"], reverse=True)
+        return ordered[:n], list(reversed(ordered))[:n]
 
     def _is_us_stock(self, stock_code: str) -> bool:
         """

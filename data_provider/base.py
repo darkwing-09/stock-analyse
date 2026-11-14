@@ -662,6 +662,7 @@ class DataFetcherManager:
         "PytdxFetcher": {"cn"},
         "BaostockFetcher": {"cn"},
         "YfinanceFetcher": {"cn", "hk", "us", "jp", "kr", "tw", "in"},
+        "FyersFetcher": {"in"},
         "LongbridgeFetcher": {"hk", "us"},
         "FutuFetcher": {"hk"},
         "FinnhubFetcher": {"us"},
@@ -1889,6 +1890,13 @@ class DataFetcherManager:
         else:
             logger.debug("[数据源初始化] 跳过未配置的 LongbridgeFetcher")
 
+        from .fyers_fetcher import FyersFetcher
+
+        if FyersFetcher.has_configured_credentials():
+            optional_fetchers.append(FyersFetcher())  # Fyers（印度 NSE 首选，需每日登录令牌）
+        else:
+            logger.debug("[数据源初始化] 跳过未配置的 FyersFetcher")
+
         if FutuFetcher.has_configured_endpoint():
             optional_fetchers.append(FutuFetcher())  # 富途（港股，依赖 OpenD）
         else:
@@ -2419,6 +2427,7 @@ class DataFetcherManager:
             "LongbridgeFetcher": "longbridge",
             "FutuFetcher": "futu",
             "YfinanceFetcher": "yfinance",
+            "FyersFetcher": "fyers",
             "AkshareFetcher": "akshare",
             "FinnhubFetcher": "finnhub",
             "AlphaVantageFetcher": "alphavantage",
@@ -2524,6 +2533,15 @@ class DataFetcherManager:
 
         if is_jp or is_kr or is_tw or is_in:
             market_label = "日股" if is_jp else "韩股" if is_kr else "台股" if is_tw else "印度股"
+            if is_in:
+                # India: Fyers (when configured) first, Yahoo Finance fallback.
+                quote = self._try_fetcher_quote(stock_code, "FyersFetcher", **target_kwargs)
+                if quote is not None:
+                    logger.info(f"[实时行情] 印度股 {stock_code} 成功获取 (来源: FyersFetcher)")
+                    return self._enrich_realtime_quote(
+                        quote,
+                        realtime_cache_ttl=getattr(config, "realtime_cache_ttl", None),
+                    )
             quote = self._try_fetcher_quote(stock_code, "YfinanceFetcher", **target_kwargs)
             if quote is not None:
                 logger.info(f"[实时行情] {market_label} {stock_code} 成功获取 (来源: YfinanceFetcher)")
@@ -3167,7 +3185,7 @@ class DataFetcherManager:
                 continue
             # India names come from the Yahoo realtime quote; A-share sources
             # would misread RELIANCE.NS as a Shenzhen code.
-            if is_in and fetcher.name != "YfinanceFetcher":
+            if is_in and fetcher.name not in {"YfinanceFetcher", "FyersFetcher"}:
                 continue
             if not self._is_fetcher_available(fetcher, capability="stock_name"):
                 continue
@@ -3357,6 +3375,17 @@ class DataFetcherManager:
         
         logger.info(f"[股票名称] 批量获取完成，成功 {len(result)}/{len(stock_codes)}")
         return result
+
+    def get_in_sector_rankings(self, n: int = 5) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """India sector-index rankings (Yahoo Finance only); ``([], [])`` when unavailable."""
+        for fetcher in self._fetchers:
+            if fetcher.name != "YfinanceFetcher" or not hasattr(fetcher, "get_in_sector_rankings"):
+                continue
+            try:
+                return fetcher.get_in_sector_rankings(n)
+            except Exception as e:
+                logger.warning(f"[YfinanceFetcher] 获取印度板块指数失败: {e}")
+        return [], []
 
     def get_main_indices(self, region: str = "cn") -> List[Dict[str, Any]]:
         """获取主要指数实时行情（自动切换数据源）"""
