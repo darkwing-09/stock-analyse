@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- [新功能] 新增印度波段交易引擎 `swing.py`（`src/swing/`）：Nifty 100 截面排名、ATR 止损与 ≥2:1 盈亏比过滤、行业与相关性约束、按风险仓位；含 Fyers 费用/滑点/20% STCG 的逐日回测、纸面交易（`paper run`）、默认关闭且多重闸门保护的 Fyers 实盘下单（`live`），以及动画仪表盘 `apps/swing-dashboard`（`swing.py serve`）与每日例程 `scripts/daily.sh`。
+
 - [新功能] 印度大盘复盘：`MARKET_REVIEW_REGION=in` 输出 Nifty 50 / Sensex / Nifty Bank / India VIX 指数与 Nifty 板块指数涨跌排行，使用印度市场策略框架（指数结构、VIX 波动、板块轮动），按 Asia/Kolkata 日期与 XBOM 交易日历运行。
 - [新功能] 新增 Fyers API v3 印度数据源 `FyersFetcher`（NSE 日线、实时行情、指数），配置后优先于 YFinance 并自动回退；新增 `scripts/fyers_login.py` 每日登录换取访问令牌。
 

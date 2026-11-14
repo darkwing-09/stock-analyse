@@ -11,6 +11,7 @@ The goal is a disciplined, data-driven process for **swing trading** (holding po
 ## Contents
 
 - [What it does](#what-it-does)
+- [Swing engine: rank, backtest, paper trade](#swing-engine-rank-backtest-paper-trade)
 - [Example output](#example-output)
 - [Quick start](#quick-start)
 - [Daily usage](#daily-usage)
@@ -37,6 +38,35 @@ The goal is a disciplined, data-driven process for **swing trading** (holding po
 | **Backtesting** | Replays past AI calls against what the price did next, reporting how often the direction was right and the simulated return (`--backtest`) |
 | **Delivery** | Markdown reports in `reports/`, a local web dashboard, and optional Telegram, Discord, Slack or email notifications |
 | **Scheduling** | Runs automatically every trading day at a time you choose, e.g. 16:30 IST after the 15:30 close |
+
+---
+
+## Swing engine: rank, backtest, paper trade
+
+`swing.py` is a rules-based engine that scans the **Nifty 100** every evening. It runs alongside the AI reports.
+
+| Command | What it does |
+|---|---|
+| `python swing.py rank` | Ranks every Nifty 100 stock on strength vs Nifty, trend smoothness, sector strength, proximity to its 52-week high, volume and calmness. Gives each an entry, ATR-based stop and target, keeps those with **at least 2:1 reward-to-risk**, then suggests a portfolio: at most 2 per sector, no two picks that move together (correlation < 0.7), and each position sized to risk 1% of capital |
+| `python swing.py backtest --years 10` | Replays the exact same rules day by day with next-open fills, 0.10% slippage, every Fyers delivery charge (brokerage, STT, stamp duty, exchange and SEBI fees, GST, DP charge) and 20% short-term gains tax, compared with buying and holding Nifty |
+| `python swing.py paper run` | Paper trading. Run it after each close: it fills yesterday's simulated orders at today's open, manages stops, and queues tomorrow's orders. Catches up on missed days |
+| `python swing.py serve` | Animated dashboard at http://127.0.0.1:8600 showing the portfolio, signals, backtest and market review. Build it once with `cd apps/swing-dashboard && npm install && npm run build` |
+| `python swing.py live plan / approve / submit / reconcile` | Real orders through Fyers. **Off by default.** See [Live trading safety](#live-trading-safety) |
+| `scripts/daily.sh` | The whole evening routine: paper trade, then AI reports on your watchlist plus today's picks. Schedule it for 16:45 IST |
+
+**Honest backtest (Nifty 100, Sep 2016 to Nov 2026, ₹5L start):** CAGR **+12.7%** vs Nifty +11.0%; worst drawdown **−26.8%** vs Nifty −38.4%; 638 trades, 37% win rate, profit factor 1.59; ₹1.89L paid in charges. After the estimated 20% tax it ends roughly level with buy-and-hold. The edge is modest and comes mainly from sitting out downtrends. In a separate study, the hold-out period from May 2025 to Nov 2026 showed no reliable edge. Today's index members are used throughout (survivorship bias), so treat all of this as optimistic.
+
+### Live trading safety
+
+Nothing reaches your broker unless **every** gate passes:
+
+1. `LIVE_TRADING_ENABLED=true` is set in the environment. It is off by default.
+2. No kill switch: create `data/swing/KILL_SWITCH` to halt everything instantly.
+3. You approved today's exact orders by typing `APPROVE` (`python swing.py live approve`).
+4. Daily loss limit (2%): once breached, new buys are blocked. Protective sells always go through.
+5. Caps: each order at most 20% of equity, at most 12 orders a day, sent at most 1 per second (far below SEBI's 10/s retail-algo threshold).
+
+Orders are after-market (AMO) CNC orders: limit buys at most 0.5% above the signal close, SL-M protective stops renewed each evening, and market sells for exits. SEBI's 2026 rules require API orders to come from a **static IP registered with Fyers**. Run `python swing.py live reconcile` to compare your real holdings with the strategy.
 
 ---
 
@@ -178,11 +208,11 @@ More detail is in [docs/india-quickstart.md](docs/india-quickstart.md) and [docs
 | Stage | Goal | Status |
 |---|---|---|
 | **1. India support** | NSE/BSE tickers, data, calendar, India-aware AI prompts | ✅ Done |
-| **2. Better data** | India market review (Nifty, Sensex, sectors); [Fyers](https://fyers.in) API as the primary data source for reliable history and live prices | 🔜 Next |
-| **3. Ranking engine** | Score each stock on strength against Nifty and its sector, trend, volume and news. Check how closely stocks move together. Produce a daily top-N list with a minimum reward-to-risk filter (≥ 2:1) | Planned |
-| **4. Honest backtesting** | Multi-year walk-forward tests that include Indian costs: STT, stamp duty, exchange fees, GST, DP charges and short-term capital gains tax. Strategies that don't beat buying and holding Nifty are dropped | Planned |
-| **5. Paper trading** | Simulated trades on live prices for 1–3 months, with an animated dashboard for signals, comparisons and P&L | Planned |
-| **6. Live, small capital** | Broker API orders following SEBI's 2026 retail algo rules (static IP, Algo-ID), with hard limits: at most 1–2% of capital at risk per trade, a daily loss cap and a kill switch. Manual approval at first | Planned |
+| **2. Better data** | India market review (Nifty, Sensex, Bank Nifty, India VIX, sector rotation); [Fyers](https://fyers.in) API data source with daily login | ✅ Done |
+| **3. Ranking engine** | Nifty 100 cross-sectional scoring, ATR stops, ≥ 2:1 reward-to-risk filter, sector cap, correlation filter, risk-based sizing | ✅ Done |
+| **4. Honest backtesting** | Day-by-day replay with Fyers charges, slippage, gaps and 20% STCG; in-sample vs hold-out split; yearly vs Nifty | ✅ Done |
+| **5. Paper trading** | Same rules on real sessions every evening, plus the animated dashboard | ✅ Done, now running |
+| **6. Live, small capital** | Fyers AMO orders behind safety gates (off by default). Switch on only after months of paper results | ✅ Built, off |
 
 ---
 
@@ -198,6 +228,9 @@ src/
   core/                 Pipeline orchestration, trading calendar, backtest engine
   services/             Business logic: signals, portfolio, alerts, history
   agent/                Multi-turn "ask about a stock" agent and strategies
+src/swing/              Swing engine: ranking, costs, backtest, paper trading, live gates, dashboard API
+swing.py                Swing engine CLI
+apps/swing-dashboard/   Animated dashboard (React, Tailwind, Framer Motion)
 strategies/             Built-in strategy templates (YAML)
 api/                    REST API (FastAPI)
 apps/dsa-web/           Web dashboard (React)
@@ -215,8 +248,8 @@ source .venv/bin/activate
 # Offline test suite (about 8,600 tests, about 10–13 minutes)
 python -m pytest -m "not network"
 
-# India tests only
-python -m pytest tests/test_in_market_support.py
+# India + swing engine tests only
+python -m pytest tests/test_in_market_*.py tests/test_swing_*.py tests/test_fyers_fetcher.py
 
 # Live data smoke test (needs internet)
 python -m pytest -m network tests/test_in_market_network.py

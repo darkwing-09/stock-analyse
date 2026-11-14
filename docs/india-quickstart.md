@@ -58,7 +58,23 @@ Fyers gives more reliable NSE prices than Yahoo. With it configured, India data 
 2. In `.env`, set `FYERS_CLIENT_ID` (the App ID, e.g. `ABCD1234-100`), `FYERS_SECRET_KEY` and `FYERS_REDIRECT_URI`.
 3. **Every trading morning**, run `python scripts/fyers_login.py`. Open the link, log in, and paste back the URL you're redirected to. The browser will show an error page at the 127.0.0.1 address; that's expected, just copy the URL. The token is saved to `data/fyers_token.json` (gitignored) and expires at the end of the day.
 
-## 5. Known limits
+## 5. Swing engine and daily routine
+
+```bash
+python swing.py rank                  # today's Nifty 100 candidates + suggested portfolio
+python swing.py backtest --years 10   # honest backtest with Indian costs and tax
+python swing.py paper run             # paper trading: run after every close
+python swing.py serve                 # dashboard at http://127.0.0.1:8600
+./scripts/daily.sh                    # paper run + AI reports for watchlist and picks
+```
+
+To run the routine automatically at 16:45 IST on weekdays (the computer must be on), add a cron entry:
+
+```bash
+(crontab -l 2>/dev/null; echo "45 16 * * 1-5 $HOME/Desktop/ai-trader/scripts/daily.sh >> $HOME/Desktop/ai-trader/data/swing/daily.log 2>&1") | crontab -
+```
+
+## 6. Known limits
 
 - Without Fyers, prices come from Yahoo Finance: free, but about 15 minutes delayed and sometimes patchy.
 - The NSE holiday calendar in `exchange-calendars` 4.13 ends on 2026-12-31. Upgrade the package in January, or holidays will be treated as trading days.
