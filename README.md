@@ -214,6 +214,8 @@ More detail is in [docs/india-quickstart.md](docs/india-quickstart.md) and [docs
 | **5. Paper trading** | Same rules on real sessions every evening, plus the animated dashboard | ✅ Done, now running |
 | **6. Live, small capital** | Fyers AMO orders behind safety gates (off by default). Switch on only after months of paper results | ✅ Built, off |
 
+The stages above are **v0.1**. The next versions turn this into a full research platform (markets today, screener, per-stock pages with Quality/Value/Momentum scores and a buy checklist, watchlists and a portfolio tracker on the Nifty 500). The plan, specification and task list live in [docs/market-platform/](docs/market-platform/README.md): [ROADMAP](docs/market-platform/ROADMAP.md) · [SPEC](docs/market-platform/SPEC.md) · [TASKS](docs/market-platform/TASKS.md).
+
 ---
 
 ## Project structure
