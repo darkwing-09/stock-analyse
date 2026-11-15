@@ -21,15 +21,15 @@ Update this file in the same commit as the work.
 | v1-P1-T01 | Bundle Nifty 500 constituents and register `nifty500` universe (`load_universe`, `--refresh` from NSE) | `load_universe("nifty500")` returns 500 stocks with sector mapping; `swing.py universe --name nifty500` lists them | — | 0.5 | [x] CSV bundled; loader pending |
 | v1-P1-T02 | Write failing tests for metrics, scores, checklist (`tests/test_market_metrics.py`) | Tests collect and fail on missing module | — | 1 | [x] |
 | v1-P1-T03 | Write failing tests for screener grammar and presets (`tests/test_market_screener.py`) | Same | — | 0.5 | [x] |
-| v1-P1-T04 | `src/market/metrics.py`: `compute_technicals(panel)` (returns, 52w range, SMAs/EMAs, RSI, MACD, ATR, beta, volume ratio, relative strength, flags) | T02 technical assertions green on the synthetic panel | T02 | 2 | [ ] |
-| v1-P1-T05 | `fundamentals_frame(info_by_symbol)` with unit normalisation (Yahoo percents → ratios) | T02 fundamentals assertions green | T02 | 1 | [ ] |
-| v1-P1-T06 | `score_universe(frame)`: Quality / Value / Momentum percentiles and overall label (SPEC §4) | T02 score assertions green, NaN-tolerant | T04, T05 | 1.5 | [ ] |
-| v1-P1-T07 | `checklist(row, sector_medians)` (SPEC §5) | T02 checklist assertions green | T05 | 1 | [ ] |
-| v1-P1-T08 | `src/market/screener.py`: `METRICS` catalogue, `parse_filters`, `run_screen`, `PRESETS` (SPEC §7) | T03 green | T04–T06 | 1.5 | [ ] |
-| v1-P1-T09 | `src/market/store.py`: SQLite schema, `save_frame/load_frame`, upserts, `meta` | Round-trip test on a temp DB | — | 1 | [ ] |
-| v1-P1-T10 | `src/market/refresh.py`: batch price download (3y), per-ticker fetch with 3 threads + retry/backoff, statements, actions, news, calendar, indices; computes metrics, sector medians, checklist counts; `--prices-only` | Dry run on 10 symbols writes every table; failures logged per symbol; full Nifty 500 run ≤ 20 min | T04–T09 | 3 | [ ] |
-| v1-P1-T11 | CLI: `swing.py market refresh [--universe] [--prices-only] [--symbols]`, `market status` | Commands documented in `--help`; status prints last refresh, counts, oldest price date | T10 | 0.5 | [ ] |
-| v1-P1-T12 | Refresh fixture test: recorded yfinance responses for 3 symbols → full pipeline offline | Test green without network | T10 | 1 | [ ] |
+| v1-P1-T04 | `src/market/metrics.py`: `compute_technicals(panel)` (returns, 52w range, SMAs/EMAs, RSI, MACD, ATR, beta, volume ratio, relative strength, flags) | T02 technical assertions green on the synthetic panel | T02 | 2 | [x] |
+| v1-P1-T05 | `fundamentals_frame(info_by_symbol)` with unit normalisation (Yahoo percents → ratios) | T02 fundamentals assertions green | T02 | 1 | [x] |
+| v1-P1-T06 | `score_universe(frame)`: Quality / Value / Momentum percentiles and overall label (SPEC §4) | T02 score assertions green, NaN-tolerant | T04, T05 | 1.5 | [x] |
+| v1-P1-T07 | `checklist(row, sector_medians)` (SPEC §5) | T02 checklist assertions green | T05 | 1 | [x] |
+| v1-P1-T08 | `src/market/screener.py`: `METRICS` catalogue, `parse_filters`, `run_screen`, `PRESETS` (SPEC §7) | T03 green | T04–T06 | 1.5 | [x] |
+| v1-P1-T09 | `src/market/store.py`: SQLite schema, `save_frame/load_frame`, upserts, `meta` | Round-trip test on a temp DB | — | 1 | [x] |
+| v1-P1-T10 | `src/market/refresh.py`: batch price download (3y), per-ticker fetch with 3 threads + retry/backoff, statements, actions, news, calendar, indices; computes metrics, sector medians, checklist counts; `--prices-only` | Dry run on 10 symbols writes every table; failures logged per symbol; full Nifty 500 run ≤ 20 min | T04–T09 | 3 | [x] |
+| v1-P1-T11 | CLI: `swing.py market refresh [--universe] [--prices-only] [--symbols]`, `market status` | Commands documented in `--help`; status prints last refresh, counts, oldest price date | T10 | 0.5 | [x] |
+| v1-P1-T12 | Refresh fixture test: recorded yfinance responses for 3 symbols → full pipeline offline | Test green without network | T10 | 1 | [x] |
 
 ### Phase 2 — API (est. 6 h)
 

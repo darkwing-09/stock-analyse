@@ -123,4 +123,4 @@ def test_checklist_reports_each_rule_with_evidence():
     assert not by_id["rsi"]["passed"]                                 # 72 is overbought
     assert by_id["beats_nifty"]["passed"]
     assert len(items) >= 15 and all({"id", "label", "passed", "detail", "group"} <= set(i) for i in items)
-    assert sum(i["passed"] for i in items) == sum(1 for i in items if i["passed"] is True)
+    assert by_id["margin"]["passed"] is None and "Not enough data" in by_id["margin"]["detail"]  # operating_margin absent

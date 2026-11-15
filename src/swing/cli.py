@@ -337,12 +337,36 @@ def cmd_universe(args) -> int:
     return 0
 
 
+def cmd_market(args) -> int:
+    from src.market.store import MarketStore
+
+    store = MarketStore()
+    if args.action == "status":
+        meta = store.get_meta("last_refresh")
+        if not meta:
+            print("No market refresh yet. Run: python swing.py market refresh")
+            return 1
+        print(json.dumps(meta, indent=2))
+        print("rows:", store.counts())
+        return 0
+    from src.market.refresh import YahooSource, run_refresh
+    from src.swing.data import load_universe, stocks_from_symbols
+
+    universe = load_universe(args.universe)
+    stocks = stocks_from_symbols(args.symbols.split(","), universe) if args.symbols else universe
+    logging.getLogger("src.market").setLevel(logging.INFO)
+    report = run_refresh(store, stocks, YahooSource(), universe_name=args.universe, prices_only=args.prices_only,
+                         workers=args.workers, years=args.years, progress=print)
+    print(f"Refreshed {report['symbols']} stocks to {report['as_of']} in {report['seconds']}s; failed: {len(report['failed'])}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="swing.py", description="India swing-trading research engine")
     sub = parser.add_subparsers(dest="command", required=True)
 
     def universe_args(p):
-        p.add_argument("--universe", default="nifty100", choices=["nifty100"])
+        p.add_argument("--universe", default="nifty100", choices=["nifty100", "nifty500"])
         p.add_argument("--symbols", help="comma-separated tickers instead of the universe, e.g. TCS.NS,INFY.NS")
 
     p = sub.add_parser("rank", help="rank today's swing candidates and suggest a portfolio")
@@ -376,8 +400,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--port", type=int, default=8600)
     p.set_defaults(func=cmd_serve)
 
+    p = sub.add_parser("market", help="research platform data: refresh (nightly) or status")
+    p.add_argument("action", choices=["refresh", "status"])
+    p.add_argument("--universe", default="nifty500", choices=["nifty100", "nifty500"])
+    p.add_argument("--symbols", help="comma-separated subset, e.g. TATAMOTORS.NS,TCS.NS")
+    p.add_argument("--prices-only", action="store_true", help="skip per-stock fundamentals (fast post-close update)")
+    p.add_argument("--workers", type=int, default=3)
+    p.add_argument("--years", type=float, default=3.0)
+    p.set_defaults(func=cmd_market)
+
     p = sub.add_parser("universe", help="list (or --refresh from NSE) the stock universe")
-    p.add_argument("--universe", default="nifty100", choices=["nifty100"])
+    p.add_argument("--universe", default="nifty100", choices=["nifty100", "nifty500"])
     p.add_argument("--refresh", action="store_true")
     p.set_defaults(func=cmd_universe)
     return parser

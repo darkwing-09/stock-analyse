@@ -23,8 +23,11 @@ from data_provider.india_indices import IN_BENCHMARK_SYMBOL, NSE_INDUSTRY_TO_SEC
 logger = logging.getLogger(__name__)
 
 PACKAGE_DATA = Path(__file__).resolve().parent / "data"
-UNIVERSE_FILES = {"nifty100": PACKAGE_DATA / "nifty100.csv"}
-NSE_UNIVERSE_URLS = {"nifty100": "https://archives.nseindia.com/content/indices/ind_nifty100list.csv"}
+UNIVERSE_FILES = {"nifty100": PACKAGE_DATA / "nifty100.csv", "nifty500": PACKAGE_DATA / "nifty500.csv"}
+NSE_UNIVERSE_URLS = {
+    "nifty100": "https://archives.nseindia.com/content/indices/ind_nifty100list.csv",
+    "nifty500": "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv",
+}
 DEFAULT_CACHE_DIR = Path("data/swing_cache")
 FIELDS = ("open", "high", "low", "close", "volume")
 
