@@ -7,6 +7,7 @@ export const inr = (v: number | null | undefined, decimals = false) =>
 export const num = (v: number | null | undefined) => (v == null ? "—" : numFmt.format(v));
 export const pct = (v: number | null | undefined, signed = true) =>
   v == null || Number.isNaN(v) ? "—" : `${signed && v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
+export const compactInr = (v: number) => (Math.abs(v) >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : `₹${(v / 1e5).toFixed(1)}L`);
 export const day = (iso: string | null | undefined) =>
   iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 export const shortDay = (iso: string) =>

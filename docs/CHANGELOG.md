@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- [改进] 重新设计 `apps/swing-dashboard` 动画仪表盘：近黑底色（`#080808`）与 1px 细线面板、随指针移动的边缘发光与径向高光、页首聚光灯光束、标题逐词模糊渐显、弹簧式标签/筛选胶囊、行情状态胶囊环绕光点；图表配色（策略蓝 / Nifty 橙）在深色底上通过色觉与对比度校验；市场复盘改用 `remark-gfm` 正确渲染表格；全部动效遵循 `prefers-reduced-motion`。新增 `apps/swing-dashboard/PRODUCT.md` 与 `DESIGN.md` 记录产品事实与设计系统。
+
 - [新功能] 新增印度波段交易引擎 `swing.py`（`src/swing/`）：Nifty 100 截面排名、ATR 止损与 ≥2:1 盈亏比过滤、行业与相关性约束、按风险仓位；含 Fyers 费用/滑点/20% STCG 的逐日回测、纸面交易（`paper run`）、默认关闭且多重闸门保护的 Fyers 实盘下单（`live`），以及动画仪表盘 `apps/swing-dashboard`（`swing.py serve`）与每日例程 `scripts/daily.sh`。
 
 - [新功能] 印度大盘复盘：`MARKET_REVIEW_REGION=in` 输出 Nifty 50 / Sensex / Nifty Bank / India VIX 指数与 Nifty 板块指数涨跌排行，使用印度市场策略框架（指数结构、VIX 波动、板块轮动），按 Asia/Kolkata 日期与 XBOM 交易日历运行。

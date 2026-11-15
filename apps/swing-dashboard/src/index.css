@@ -4,28 +4,75 @@
 
 @layer base {
   :root { color-scheme: dark; }
-  html { background: #0b0f1a; }
+  html { background: #080808; }
   body {
-    @apply bg-ink-950 text-fg font-sans antialiased;
+    @apply bg-ground text-fg font-sans antialiased;
     font-feature-settings: "ss01", "cv11";
-    caret-color: #f2b23e;
+    caret-color: #60a5fa;
   }
-  ::selection { background: rgba(242, 178, 62, 0.32); color: #fff7e6; }
-  :focus-visible { outline: 2px solid #f2b23e; outline-offset: 2px; border-radius: 6px; }
-  * { scrollbar-width: thin; scrollbar-color: #323d57 transparent; }
+  ::selection { background: rgba(59, 130, 246, 0.35); color: #ffffff; }
+  :focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; border-radius: 8px; }
+  * { scrollbar-width: thin; scrollbar-color: #2a2a2a transparent; }
   *::-webkit-scrollbar { width: 10px; height: 10px; }
-  *::-webkit-scrollbar-thumb { background: #323d57; border-radius: 99px; border: 3px solid #0b0f1a; }
+  *::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 99px; border: 3px solid #080808; }
+  *::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
   a { text-underline-offset: 3px; }
   h1, h2, h3 { text-wrap: balance; letter-spacing: -0.02em; }
+  button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 }
 
 @layer components {
-  .num { @apply font-mono tabular-nums; font-feature-settings: "tnum", "zero"; }
-  .panel { @apply rounded-2xl bg-ink-850 ring-1 ring-ink-700/80 shadow-lift; }
-  .label { @apply text-[12px] font-medium text-fg-3; }
-  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ring-1; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "ss01", "cv11"; }
+  .mono { @apply font-mono; font-feature-settings: "tnum", "zero"; }
+  .label { @apply text-[12px] font-medium tracking-[0.01em] text-fg-3; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset; }
+  .panel { @apply relative rounded-2xl bg-surface ring-1 ring-inset ring-line; }
+
+  /* Chart-paper dots under the header, fading out before the first panel. */
+  .dotgrid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1.3px);
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 10%, transparent 70%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 10%, transparent 70%);
+  }
+
+  /* Pointer-tracked glow: a soft radial wash plus a conic highlight on the 1px edge. */
+  .glow { --gx: 50%; --gy: 50%; --ga: 0; --gs: 0; }
+  .glow::before {
+    content: "";
+    position: absolute; inset: 0; z-index: 0;
+    border-radius: inherit; pointer-events: none;
+    background: radial-gradient(520px circle at var(--gx) var(--gy), rgba(59, 130, 246, 0.12), transparent 60%);
+    opacity: var(--ga);
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glow::after {
+    content: "";
+    position: absolute; inset: -1px; z-index: 0;
+    border-radius: inherit; pointer-events: none; padding: 1px;
+    background: conic-gradient(from calc((var(--gs) - 45) * 1deg), transparent 0deg, #3b82f6 30deg, #93c5fd 45deg, #3b82f6 60deg, transparent 90deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: var(--ga);
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Soft halo on the strategy line only. */
+  .eq-strategy .recharts-line-curve { filter: url(#eqGlow); }
+
+  .shimmer {
+    background: linear-gradient(100deg, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 70%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

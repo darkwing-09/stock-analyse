@@ -1,5 +1,7 @@
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { EXPO, stagger } from "../lib/motion";
 
 export interface Column<T> {
   key: string;
@@ -26,6 +28,7 @@ export function DataTable<T>({
   expanded?: string | null;
   renderExpanded?: (row: T) => ReactNode;
 }) {
+  const reduce = useReducedMotion();
   const [sort, setSort] = useState(initialSort);
   const sorted = useMemo(() => {
     const col = columns.find((c) => c.key === sort?.key);
@@ -51,13 +54,13 @@ export function DataTable<T>({
                   key={c.key}
                   scope="col"
                   aria-sort={active ? (sort!.dir === "asc" ? "ascending" : "descending") : undefined}
-                  className={`sticky top-0 border-b border-ink-700 bg-ink-850 px-3 py-2.5 font-medium text-fg-3 ${c.align === "right" ? "text-right" : "text-left"}`}
+                  className={`sticky top-0 z-[1] border-b border-line bg-surface px-3 py-2.5 text-[12px] font-medium tracking-[0.01em] text-fg-3 ${c.align === "right" ? "text-right" : "text-left"}`}
                 >
                   {c.sort ? (
                     <button
                       type="button"
                       onClick={() => setSort({ key: c.key, dir: active && sort!.dir === "desc" ? "asc" : "desc" })}
-                      className={`inline-flex items-center gap-1 rounded hover:text-fg ${active ? "text-fg" : ""}`}
+                      className={`inline-flex items-center gap-1 rounded transition-colors hover:text-fg ${active ? "text-fg" : ""}`}
                     >
                       {c.label}
                       {active && (sort!.dir === "desc" ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
@@ -71,25 +74,45 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row) => {
+          {sorted.map((row, i) => {
             const key = rowKey(row);
+            const open = expanded === key;
             return [
-              <tr
+              <motion.tr
                 key={key}
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: EXPO, delay: stagger(i, 0.03) }}
                 onMouseMove={spotlight}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`group transition-colors [background:radial-gradient(260px_circle_at_var(--x,-300px)_50%,rgba(242,178,62,0.07),transparent_70%)] ${onRowClick ? "cursor-pointer" : ""}`}
+                aria-expanded={renderExpanded ? open : undefined}
+                className={`group [background:radial-gradient(320px_circle_at_var(--x,-400px)_50%,rgba(59,130,246,0.08),transparent_70%)] ${onRowClick ? "cursor-pointer" : ""}`}
               >
                 {columns.map((c) => (
-                  <td key={c.key} className={`border-b border-ink-700/60 px-3 py-2.5 group-hover:bg-white/[0.015] ${c.align === "right" ? "text-right" : ""}`}>
+                  <td
+                    key={c.key}
+                    className={`border-b border-white/[0.05] px-3 py-2.5 transition-colors duration-200 group-hover:bg-white/[0.02] ${open ? "bg-white/[0.025]" : ""} ${c.align === "right" ? "text-right" : ""}`}
+                  >
                     {c.render(row)}
                   </td>
                 ))}
-              </tr>,
-              expanded === key && renderExpanded ? (
+              </motion.tr>,
+              renderExpanded ? (
                 <tr key={`${key}-x`}>
-                  <td colSpan={columns.length} className="border-b border-ink-700/60 bg-ink-900/60 px-3 py-4">
-                    {renderExpanded(row)}
+                  <td colSpan={columns.length} className={`p-0 ${open ? "border-b border-white/[0.05]" : ""}`}>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div
+                          initial={reduce ? false : { height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.32, ease: EXPO }}
+                          className="overflow-hidden bg-white/[0.02]"
+                        >
+                          <div className="px-4 py-4">{renderExpanded(row)}</div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </td>
                 </tr>
               ) : null,
