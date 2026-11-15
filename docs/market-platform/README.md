@@ -9,6 +9,7 @@ markets-today page; watchlists and a portfolio tracker.
 |---|---|
 | [README.md](README.md) (this file) | Vision, principles, architecture, data sources, legal position |
 | [SPEC.md](SPEC.md) | Product specification: pages, data model, metrics catalogue, scores, checklist, API, screener grammar |
+| [AGENTS.md](AGENTS.md) | The real-time multi-agent architecture: feeds, agents, decision ledger, horizons, ML plan, production shape |
 | [ROADMAP.md](ROADMAP.md) | Versions and phases, in order, with the exit criteria for each |
 | [TASKS.md](TASKS.md) | The task breakdown: every task with an ID, acceptance criteria, dependencies and status |
 
@@ -17,6 +18,8 @@ engine), [../../apps/swing-dashboard/DESIGN.md](../../apps/swing-dashboard/DESIG
 (the visual system every new page follows), [../../apps/swing-dashboard/PRODUCT.md](../../apps/swing-dashboard/PRODUCT.md).
 
 ## Vision
+
+A research desk that becomes a trading desk: continuous market data, several agents working at once (scan, analyse, risk, execute, report), every decision recorded and shown live on the stock it concerns, and a dashboard that makes the reasoning visible. [AGENTS.md](AGENTS.md) describes that system; the paragraphs below describe the research foundation it stands on.
 
 A personal research desk for Indian equities that **shows its working**. Every
 number carries its source and its date; every score decomposes into the

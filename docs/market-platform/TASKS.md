@@ -101,19 +101,62 @@ Update this file in the same commit as the work.
 | v1-P8-T03 | Full test suite, impeccable detector, Playwright capture pass at 1440/390 for every route | No console errors; no overflow | all | 1.5 | [ ] |
 | v1-P8-T04 | Tag `v1.0.0`, push | Tag on GitHub | all | 0.5 | [ ] |
 
-## v1.1 — Depth (outline; detailed when v1.0 ships)
+## v1.5 — Real-time feed (est. 30 h; needs a Fyers account)
 
-- P1 NSE filings: shareholding history, bulk/block deals, SAST/insider, actions and results calendars (fixture-tested parsers)
-- P2 Statement pages and ratio history with charts
-- P3 Technicals: delivery, pivots, candlestick patterns, multi-timeframe oscillators, technical screener group
-- P4 Saved custom screens, sector-relative operators, alerts via Telegram/email
-- P5 Compare up to five stocks
-- P6 Broker CSV import, realised P&L, dividends, XIRR
+| ID | Task | Acceptance | Est | Status |
+|---|---|---|---|---|
+| v15-P1-T01 | `src/feed/fyers_ws.py`: websocket client, reconnect with backoff, daily token refresh hook | Survives a forced disconnect; logs gaps | 3 | [ ] |
+| v15-P1-T02 | Subscription manager: watchlist ∪ scanner shortlist ∪ open positions, ≤ 200 symbols/socket, multiple sockets | Set changes apply without reconnect | 2 | [ ] |
+| v15-P1-T03 | Tick normaliser + Parquet recorder (one file per symbol-day) | A recorded session replays bit-identical | 2 | [ ] |
+| v15-P2-T01 | Bar builder (1 s, 1 m), VWAP, session high/low/open, volume profile basics | Matches broker 1-m candles within 1 tick on a recorded day | 3 | [ ] |
+| v15-P2-T02 | DuckDB store over Parquet; query helpers; retention | Range queries < 50 ms | 2 | [ ] |
+| v15-P2-T03 | Minute-bar backfill from Fyers history (100 days/call), resumable, nightly | 2 years for Nifty 500 within a week of nights | 3 | [ ] |
+| v15-P3-T01 | SSE endpoints for quotes and bars; last-value cache; heartbeat | 50 tabs on localhost without lag | 3 | [ ] |
+| v15-P4-T01 | Ticking numbers (index strip, watchlist, stock header) with reduced-motion path | No flashing; colour only on icons | 2 | [ ] |
+| v15-P4-T02 | Live candle chart (1 m / 5 m), VWAP, volume, session clock | Renders at 390 px | 4 | [ ] |
+| v15-P5-T01 | Replay engine (1×/10×/max) feeding the same pipeline; CLI `swing.py replay <day>` | Used by tests | 3 | [ ] |
+| v15-P5-T02 | Docs, tests with a recorded fixture day, tag `v1.5.0` | Fresh clone replays the fixture | 3 | [ ] |
 
-## v1.2 — Intelligence (outline)
+## v2.0 — Agents (est. 60 h)
 
-- P1 AI stock report · P2 Ask about a stock · P3 Sector pages · P4 Results season · P5 Superstar holdings
+| ID | Task | Acceptance | Est | Status |
+|---|---|---|---|---|
+| v2-P1-T01 | Event schema (pydantic), asyncio bus, topic routing, backpressure | Property test: every event delivered once, in order per symbol | 3 | [ ] |
+| v2-P1-T02 | Decision ledger store (SQLite, Postgres-ready), indices by symbol/time/agent, parent links | Query the chain for one hypothesis in one call | 3 | [ ] |
+| v2-P2-T01 | Scanner agent: quick features on 1-m bars, ranking, one-line reasons | Nifty 500 cycle < 1 s | 4 | [ ] |
+| v2-P2-T02 | Scanner page: live ranked table, sparklines, filters by setup/horizon | Updates without re-render jank | 3 | [ ] |
+| v2-P3-T01 | Feature engine for a symbol (multi-timeframe) with point-in-time guarantees | Leakage test green | 4 | [ ] |
+| v2-P3-T02 | Pattern similarity: window normalisation, index (sklearn/FAISS), neighbour outcomes | Query < 50 ms over 2 years of minute windows | 4 | [ ] |
+| v2-P3-T03 | Setup classifier (breakout, pullback, opening range, mean reversion, trend) with drawn levels | Each setup has a fixture day where it fires | 3 | [ ] |
+| v2-P3-T04 | Hypothesis records (direction, expected move, probability, stop, target, validity) | Schema matches AGENTS.md §3.2 | 2 | [ ] |
+| v2-P3-T05 | Verification job and calibration chart per setup/horizon | Brier score reported | 3 | [ ] |
+| v2-P4-T01 | Risk agent: sizing, sector/correlation caps, daily loss, orders/minute, kill switch, market hours | Every veto carries a reason code | 4 | [ ] |
+| v2-P4-T02 | Execution agent, paper mode: fills from live quotes with slippage model, partial fills, cancels | Replayed day → traceable paper P&L | 4 | [ ] |
+| v2-P4-T03 | Agents page: heartbeats, queues, last decisions, limits, kill switch | Operable from the browser | 3 | [ ] |
+| v2-P5-T01 | Report agent: assembled verdict + LLM summary with per-sentence sources | < 5 s; citations resolve | 4 | [ ] |
+| v2-P6-T01 | Stock page live: hypothesis on chart, analogue overlay, decision timeline (SSE) | Chain visible end to end | 5 | [ ] |
+| v2-P6-T02 | Portfolio live P&L and open risk | Matches ledger fills | 2 | [ ] |
+| v2-P7-T01 | Agent backtest over recorded history with costs; scorecards per agent/horizon/setup | Published in the dashboard | 5 | [ ] |
+| v2-P7-T02 | Docs, fixtures, tag `v2.0.0` | — | 4 | [ ] |
 
-## v2.0 — Live and multi-user (outline)
+## v2.5 — Learning (est. 30 h)
 
-- P1 Fyers websocket real-time · P2 Accounts and hosting · P3 PWA with push · P4 F&O and MF · P5 Data downloader
+| ID | Task | Acceptance | Est | Status |
+|---|---|---|---|---|
+| v25-P1-T01 | Point-in-time feature store (Parquet), leakage tests | Any past timestamp reproducible | 5 | [ ] |
+| v25-P2-T01 | Walk-forward LightGBM per horizon; calibration; registry | Three OOS folds reported | 8 | [ ] |
+| v25-P2-T02 | Feature importance and model version written to each hypothesis | Visible on the stock page | 2 | [ ] |
+| v25-P3-T01 | Shadow mode (model proposes, baseline trades) and promotion rule | Promotion decision in ledger | 4 | [ ] |
+| v25-P4-T01 | Live small capital: Execution → Fyers on the earned horizon, daily approval, static IP, order tags | Months of paper record; approvals logged | 6 | [ ] |
+| v25-P4-T02 | Docs, tag `v2.5.0` | — | 2 | [ ] |
+
+## v3.0 — Production (est. 50 h)
+
+| ID | Task | Est | Status |
+|---|---|---|---|
+| v3-P1-T01 | Docker Compose (api, ingest, agents, redis, duckdb/timescale, postgres, nginx TLS); Redis Streams bus adapter | 8 | [ ] |
+| v3-P2-T01 | Prometheus metrics, Grafana dashboards, Alertmanager → Telegram, structured logs | 6 | [ ] |
+| v3-P3-T01 | Accounts, per-user data, sessions; vendor/broker agreements checklist | 10 | [ ] |
+| v3-P4-T01 | US feed (Alpaca/Polygon), currency handling, cross-market pages | 8 | [ ] |
+| v3-P5-T01 | PWA, push alerts | 6 | [ ] |
+| v3-P6-T01 | Research depth: NSE filings parsers, statement pages, saved screens + alerts, compare, broker CSV import, F&O, MF | 12 | [ ] |
